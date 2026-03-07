@@ -1,0 +1,1 @@
+-- Master sets table, joined with price history and minifigure counts

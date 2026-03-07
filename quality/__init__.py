@@ -1,0 +1,3 @@
+'''
+Makes directory a Python package
+'''

@@ -1,0 +1,1 @@
+-- All minifigueres with exclusivity and set appearance counts.

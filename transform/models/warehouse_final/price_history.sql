@@ -1,0 +1,1 @@
+-- Full cleaned price history for every set over time.
