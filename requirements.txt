@@ -1,0 +1,27 @@
+# Google Cloud Platform
+google-cloud-storage==2.17.0
+google-cloud-bigquery==3.17.0
+google-cloud-error-reporting==3.2.0
+google-api-python-client==2.115.0
+
+# Apache Airflow
+apache-airflow==2.8.0
+apache-airflow-providers-google==10.17.0
+apache-airflow-providers-http==4.8.0
+
+# dbt (data build tool)
+dbt-core==1.7.0
+dbt-bigquery==1.7.0
+
+# Data scraping and processing
+requests==2.31.0
+beautifulsoup4==4.12.3
+lxml==5.1.0
+pandas==2.2.0
+
+# Environment and config
+python-dotenv==1.0.0
+PyYAML==6.0.1
+
+# Testing
+pytest==8.0.0
