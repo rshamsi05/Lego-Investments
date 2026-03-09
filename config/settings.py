@@ -13,16 +13,13 @@ class Settings:
     # GCP Configuration
     GCP_PROJECT_ID: str = os.getenv('GCP_PROJECT_ID', ' lego-investments')
     GCP_GCS_BUCKET: str = os.getenv('GCP_GCS_BUCKET', 'lego-investment-lake')
-    # What is this?
-    GCP_B0_DATASET: str = os.getenv('GCP_B0_DATASET', 'lego_staging')
+    GCP_BQ_DATASET: str = os.getenv('GCP_B0_DATASET', 'lego_staging')
     GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '')
 
     # API Keys
-    # This looks sus
     REBRICK_API_KEY: str = os.getenv('REBRICK_API_KEY', '')
 
     # Airflow Configuration
-    # What does 50,000 meaan?
     AIRFLOW_UID: str = os.getenv('AIRFLOW_UID', '50000')
     AIRFLOW_ENV: str = os.getenv('AIRFLOW_ENV', 'local')
 
@@ -57,14 +54,12 @@ class Settings:
 
     # Retry Configuration
     MAX_RETRIES: int = 3
-    # What is this?
     RETRY_BACKOFF: float = 2.0  # exponential backoff multiplier
 
     # Data Quality Thresholds
     MAX_NULL_RATE: float = 0.1  # 10% nulls allowed
     MIN_PRICE_USD: float = 0.0
     MAX_PRICE_USD: float = 10000.0
-    # What does this mean?
     MAX_DUPLICATE_RATE: float = 0.01  # 1% duplicates allowed
 
     # dbt Configuration
