@@ -125,7 +125,7 @@ def delete_from_gcs(
         gcs_path: Path in GCS(without prefix) to delete (e.g. 'rawFiles/rebrickable/sets/2026-03-08.json)
         bucket_name: bucket name (optional, defaults to settings.GCP_GCS_BUCKET)
     Returns:
-        True if deleted, Flase if file did not exist
+        True if deleted, False if file did not exist
     '''
     client = get_client()
     bucket = client.bucket(bucket_name or settings.GCP_GCS_BUCKET)

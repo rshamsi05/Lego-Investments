@@ -35,7 +35,7 @@ def run_query(query: str, use_legacy_sql: bool = False) -> list[dict]:
 
 def run_query_to_dataframe(query: str, use_legacy_sql: bool = False):
     '''
-    Execute a SQL query and return results as a padnas DataFrame.
+    Execute a SQL query and return results as a pandas DataFrame.
 
     Args:
         query: SQL query string
@@ -72,7 +72,7 @@ def table_exists(table_name: str, dataset_id: str | None = None) -> bool:
         logger.error(f"Unexpected error checking table '{table_id}': {e}")
         raise
 
-def get_table_schema(table_bame: str, dataset_id: str | None = None) -> list[dict]:
+def get_table_schema(table_name: str, dataset_id: str | None = None) -> list[dict]:
     '''
     Get the schema of an existing table
 
@@ -85,7 +85,7 @@ def get_table_schema(table_bame: str, dataset_id: str | None = None) -> list[dic
     '''
     client = get_client()
     dataset = dataset_id or settings.GCP_BQ_DATASET
-    table_id = f"{client.project}.{dataset}.{table_bame}"
+    table_id = f"{client.project}.{dataset}.{table_name}"
 
     table = client.get_table(table_id)
     # for each column in the table schema, return a dictionary with the name, type, mode, and description of the column
@@ -114,7 +114,7 @@ def insert_rows(
         rows: List of row dictionaries to insert
         dataset_id: Dataset ID (defaults to settings.GCP_BQ_DATASET)
     Returns:
-        List of error dictionatires (empty if successful)
+        List of error dictionaries (empty if successful)
     '''
     client = get_client()
     dataset = dataset_id or settings.GCP_BQ_DATASET
@@ -137,7 +137,7 @@ def create_table(
         schema: List of SchemaField objects,
         dataset_id: Dataset ID (defaults to settings.GCP_BQ_DATASET)
     Returns:
-        True if created sucessfully 
+        True if created successfully 
     '''
     client = get_client()
     dataset = dataset_id or settings.GCP_BQ_DATASET

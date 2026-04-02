@@ -15,7 +15,7 @@ SCHEMA_STG_SETS = [
     bigquery.SchemaField('subtheme_name', 'STRING', mode='NULLABLE', description='subtheme name of the set'),
     bigquery.SchemaField('subtheme_id', 'STRING', mode='NULLABLE', description='subtheme ID of the set'),
     bigquery.SchemaField('piece_count', 'INTEGER', mode='NULLABLE', description='Number of pieces in the set'),
-    bigquery.SchemaField('retail_price_usd', 'INTEGER', mode='NULLABLE', description='Original retail price of set'),
+    bigquery.SchemaField('retail_price_usd', 'FLOAT', mode='NULLABLE', description='Original retail price of set in USD (e.g., 79.99, 199.99)'),
     bigquery.SchemaField('is_retired', 'BOOLEAN', mode='REQUIRED', description='Whether the set is retired'),
     bigquery.SchemaField('rebrickable_url', 'STRING', mode='NULLABLE', description='URL to Rebrickable set page'),
     bigquery.SchemaField('ingested_at', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was ingested into the staging table')
@@ -84,7 +84,7 @@ SCHEMA_SETS = [
     bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the set.'),
     bigquery.SchemaField('year', 'INTEGER', mode='REQUIRED', description='Year the set was released'),
     bigquery.SchemaField('theme_name', 'STRING', mode='NULLABLE', description='Theme name of the set(e.g Star Wars)'),
-    bigquery.SchemaField('subtheme_name', 'STRING', mode='NULABLE', description='Subtheme name of the set(e.g Star Wars: The Mandalorian)'),
+    bigquery.SchemaField('subtheme_name', 'STRING', mode='NULLABLE', description='Subtheme name of the set(e.g Star Wars: The Mandalorian)'),
     bigquery.SchemaField('piece_count', 'INTEGER', mode='NULLABLE', description='Number of pieces in the set'),
     bigquery.SchemaField('retail_price_usd', 'FLOAT', mode='NULLABLE', description='Original retail price of set'),
     bigquery.SchemaField('is_retired', 'BOOLEAN', mode='REQUIRED', description='Whether the set is retired'),
@@ -135,13 +135,11 @@ SCHEMA_MINIFIGURES = [
     bigquery.SchemaField('set_count', 'INTEGER', mode='NULLABLE', description='Number of sets this minifigure appears in'),
     bigquery.SchemaField('is_exclusive', 'BOOLEAN', mode='NULLABLE', description='Whether the minifigure is exclusive to a single set'),
     bigquery.SchemaField('exclusive_set_id', 'STRING', mode='NULLABLE', description='Set ID if the minifigure is exclusive to one set'),
-    # Why do we want to know the first and last appearance of a minifigure in a set, what insights can we gain from this?
+    # First and last appearance set columns help indicate minifigure longevity and rarity(such as when if a character was only released one time)
     bigquery.SchemaField('first_appearance_set_id', 'STRING', mode='NULLABLE', description='Set ID of the minifigure\'s first appearance'),
     bigquery.SchemaField('last_appearance_set_id', 'STRING', mode='NULLABLE', description='Set ID of the minifigure\'s most recent appearance'),
     bigquery.SchemaField('img_url', 'STRING', mode='NULLABLE', description='URL of the minifigure image'),
     bigquery.SchemaField('rebrickable_url', 'STRING', mode='NULLABLE', description='URL of the minifigure on Rebrickable'),
-    bigquery.SchemaField('set_count', 'INTEGER', mode='NULLABLE', description='Number of sets the minifigure appears in'),
-    bigquery.SchemaField('year_introduced', 'INTEGER', mode='NULLABLE', description='Year the minifigure first appeared in a set'),
     bigquery.SchemaField('last_updated', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was created in the warehouse')
 ]
 
@@ -151,7 +149,7 @@ SCHEMA_SET_PERFORMANCE = [
     bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the set'),
     bigquery.SchemaField('year', 'INTEGER', mode='REQUIRED', description='Year the set was released'),
     bigquery.SchemaField('theme_name', 'STRING', mode='NULLABLE', description='Theme name of the set(e.g Star Wars)'),
-    bigquery.SchemaField('subtheme_name', 'STRING', mode='NULABLE', description='Subtheme name of the set(e.g Star Wars: The Mandalorian)'),
+    bigquery.SchemaField('subtheme_name', 'STRING', mode='NULLABLE', description='Subtheme name of the set(e.g Star Wars: The Mandalorian)'),
     bigquery.SchemaField('era_classification', 'STRING', mode='NULLABLE', description='Classification of the set into an era based on its release year (e.g. Classic, Modern, etc)'),
     bigquery.SchemaField('piece_count', 'INTEGER', mode='NULLABLE', description='Number of pieces in the set'),
     bigquery.SchemaField('retail_price_usd', 'FLOAT', mode='NULLABLE', description='Original retail price of set'),
@@ -162,10 +160,10 @@ SCHEMA_SET_PERFORMANCE = [
     bigquery.SchemaField('roi_absolute_usd', 'FLOAT', mode='NULLABLE', description='Absolute return on investment in USD (current average price minus original retail price)'),
     bigquery.SchemaField('roi_percentage', 'FLOAT', mode='NULLABLE', description='Return on investment as a percentage ((current average price minus original retail price) divided by original retail price)'),
     bigquery.SchemaField('annualized_return_percentage', 'FLOAT', mode='NULLABLE', description='Annualized return percentage based on the original retail price, current average market price, and number of years since release'), 
-    # what does this column mean
-    bigquery.SchemaField('them_rank_roi', 'INTEGER', mode='NULLABLE', description='Rank of the set\'s theme based on average ROI percentage of sets within that theme (1 = highest ROI)'),
+    # Ranks sets within there theme based on ROI
+    bigquery.SchemaField('theme_rank_roi', 'INTEGER', mode='NULLABLE', description='Rank of the set\'s theme based on average ROI percentage of sets within that theme (1 = highest ROI)'),
     bigquery.SchemaField('theme_rank_by_appreciation', 'INTEGER', mode='NULLABLE', description='Rank of the set\'s theme based on average appreciation percentage of sets within that theme'),
-    bigquery.SchemaField('appreciation_cohort', 'INTEGER', mode='NULLABLE', description='Cohort classification based on appreciation percentage (e.g. High Appreciation -> 100%, Moderate Appreciation -> 50-100%, Low Appreciation) -> < 50%, Negative'),
+    bigquery.SchemaField('appreciation_cohort', 'STRING', mode='NULLABLE', description='Cohort classification based on appreciation percentage (e.g. High Appreciation -> 100%, Moderate Appreciation -> 50-100%, Low Appreciation) -> < 50%, Negative'),
     bigquery.SchemaField('price_trend_90d_percentage', 'FLOAT', mode='NULLABLE', description='Percentage change in average price over the last 90 days'),
     bigquery.SchemaField('market_liquidity_score', 'FLOAT', mode='NULLABLE', description='Liquidity score based on recent listing counts and price volatility'),
     bigquery.SchemaField('investment_grade', 'STRING', mode='NULLABLE', description='Investment grade classification based on ROI, appreciation, and liquidity (e.g. A, B, C, D)'),
