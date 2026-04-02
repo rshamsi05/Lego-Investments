@@ -92,12 +92,12 @@ SCHEMA_SETS = [
     bigquery.SchemaField('days_since_retirement', 'INTEGER', mode='NULLABLE', description='Number of days since the set was retired'),
     bigquery.SchemaField('minifigure_count', 'INTEGER', mode='NULLABLE', description='Total number of unique minifigures included in the set'),
     bigquery.SchemaField('part_count_unique', 'INTEGER', mode='NULLABLE', description='Number of unique parts in the set'),
-    # does this column makes sense, some pieces might be more expensive than other pieces?
+    # Might not be the best metric as it does not accout for some pieces being more expensive than others
     bigquery.SchemaField('price_per_piece', 'FLOAT', mode='NULLABLE', description='Original retail price divided by piece count'),
     bigquery.SchemaField('era_classification', 'STRING', mode='NULLABLE', description='Classification of the set into an era based on its release year (e.g. Classic, Modern, etc)'),
     bigquery.SchemaField('current_avg_price_usd', 'FLOAT', mode='NULLABLE', description='Current average market price of the set'),
     bigquery.SchemaField('price_appreciation_percentage', 'FLOAT', mode='NULLABLE', description='Percentage increase in price from original retail to current average market price'),
-    # what is the purpose of this column?
+    # Gives us investment insights over different periods of time
     bigquery.SchemaField('annualized_return_percentage', 'FLOAT', mode='NULLABLE', description='Annualized return percentage based on the original retail price, current average market price, and number of years since release'),
     bigquery.SchemaField('rebrickable_url', 'STRING', mode='NULLABLE', description='URL to Rebrickable set page'),
     bigquery.SchemaField('last_updated', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was created in the warehouse'),
@@ -127,8 +127,8 @@ SCHEMA_PRICE_HISTORY = [
 # Master minifigure table with set appearaance metrics
 SCHEMA_MINIFIGURES = [
     bigquery.SchemaField('minifigure_id', 'STRING', mode='REQUIRED', description='Unique identifier for the minifigure'),
-    # Don we need character name what is the difference between name and character name 
-    bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the minifigure'),
+    # Both columns are required as they serve different analytics purposes
+    bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the phyiscal figure which may include details like outfit or version (e.g "Luke Skywalker (Tatooine Outfit)")'),
     bigquery.SchemaField('minifigure_name', 'STRING', mode='NULLABLE', description='Name of the character the minifigure represents'),
     bigquery.SchemaField('num_parts', 'INTEGER', mode='NULLABLE', description='Number of parts in the minifigure'),
     bigquery.SchemaField('year_introduced', 'INTEGER', mode='NULLABLE', description='Year the minifigure was introduced'),
@@ -145,6 +145,45 @@ SCHEMA_MINIFIGURES = [
     bigquery.SchemaField('last_updated', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was created in the warehouse')
 ]
 
+# Set performance metrics for investment analysis
 SCHEMA_SET_PERFORMANCE = [
-    
+    bigquery.SchemaField('set_id', 'STRING', mode='REQUIRED', description='Unique identifier for the set'),
+    bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the set'),
+    bigquery.SchemaField('year', 'INTEGER', mode='REQUIRED', description='Year the set was released'),
+    bigquery.SchemaField('theme_name', 'STRING', mode='NULLABLE', description='Theme name of the set(e.g Star Wars)'),
+    bigquery.SchemaField('subtheme_name', 'STRING', mode='NULABLE', description='Subtheme name of the set(e.g Star Wars: The Mandalorian)'),
+    bigquery.SchemaField('era_classification', 'STRING', mode='NULLABLE', description='Classification of the set into an era based on its release year (e.g. Classic, Modern, etc)'),
+    bigquery.SchemaField('piece_count', 'INTEGER', mode='NULLABLE', description='Number of pieces in the set'),
+    bigquery.SchemaField('retail_price_usd', 'FLOAT', mode='NULLABLE', description='Original retail price of set'),
+    bigquery.SchemaField('is_retired', 'BOOLEAN', mode='REQUIRED', description='Whether the set is retired'),
+    bigquery.SchemaField('retirement_date', 'DATE', mode='NULLABLE', description='Date when the set was retired'),
+    bigquery.SchemaField('days_since_retirement', 'INTEGER', mode='NULLABLE', description='Number of days since the set was retired'),
+    bigquery.SchemaField('current_avg_price_usd', 'FLOAT', mode='NULLABLE', description='Current average market price of the set'),
+    bigquery.SchemaField('roi_absolute_usd', 'FLOAT', mode='NULLABLE', description='Absolute return on investment in USD (current average price minus original retail price)'),
+    bigquery.SchemaField('roi_percentage', 'FLOAT', mode='NULLABLE', description='Return on investment as a percentage ((current average price minus original retail price) divided by original retail price)'),
+    bigquery.SchemaField('annualized_return_percentage', 'FLOAT', mode='NULLABLE', description='Annualized return percentage based on the original retail price, current average market price, and number of years since release'), 
+    # what does this column mean
+    bigquery.SchemaField('them_rank_roi', 'INTEGER', mode='NULLABLE', description='Rank of the set\'s theme based on average ROI percentage of sets within that theme (1 = highest ROI)'),
+    bigquery.SchemaField('theme_rank_by_appreciation', 'INTEGER', mode='NULLABLE', description='Rank of the set\'s theme based on average appreciation percentage of sets within that theme'),
+    bigquery.SchemaField('appreciation_cohort', 'INTEGER', mode='NULLABLE', description='Cohort classification based on appreciation percentage (e.g. High Appreciation -> 100%, Moderate Appreciation -> 50-100%, Low Appreciation) -> < 50%, Negative'),
+    bigquery.SchemaField('price_trend_90d_percentage', 'FLOAT', mode='NULLABLE', description='Percentage change in average price over the last 90 days'),
+    bigquery.SchemaField('market_liquidity_score', 'FLOAT', mode='NULLABLE', description='Liquidity score based on recent listing counts and price volatility'),
+    bigquery.SchemaField('investment_grade', 'STRING', mode='NULLABLE', description='Investment grade classification based on ROI, appreciation, and liquidity (e.g. A, B, C, D)'),
+    bigquery.SchemaField('last_updated', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was created in the warehouse')
+]
+
+# Cleaned parts table with category enrichment
+SCHEMA_PARTS = [
+    bigquery.SchemaField('part_id', 'STRING', mode='REQUIRED', description='Unique identifier for the part'),
+    bigquery.SchemaField('part_number', 'STRING', mode='REQUIRED', description='Part number(e.g "3001" for a standard 2x4 brick)'),
+    bigquery.SchemaField('name', 'STRING', mode='NULLABLE', description='Name of the part'),
+    bigquery.SchemaField('part_category_id', 'STRING',  mode='NULLABLE', description='Identifier for the part category'),
+    bigquery.SchemaField('part_category_name', 'STRING', mode='NULLABLE', description='Name of the part category(e.g Brick, Plate, Slope, etc)'),
+    bigquery.SchemaField('year_introduced', 'INTEGER', mode='NULLABLE', description='Year the part was introduced'),
+    bigquery.SchemaField('set_count', 'INTEGER', mode='NULLABLE', description='Number of sets this part appears in'),
+    bigquery.SchemaField('color_count', 'INTEGER', mode='NULLABLE', description='Number of different colors this part appears in'),
+    bigquery.SchemaField('is_common_part', 'BOOLEAN', mode='NULLABLE', description='Whether the part is a common part that appears in many sets'),
+    bigquery.SchemaField('img_url', 'STRING', mode='NULLABLE', description='URL of the part image'),
+    bigquery.SchemaField('rebrickable_url', 'STRING', mode='NULLABLE', description='URL of the part on Rebrickable'),
+    bigquery.SchemaField('last_updated', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was created in the warehouse')
 ]
