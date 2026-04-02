@@ -11,9 +11,9 @@ load_dotenv()
 
 class Settings:
     # GCP Configuration
-    GCP_PROJECT_ID: str = os.getenv('GCP_PROJECT_ID', ' lego-investments')
+    GCP_PROJECT_ID: str = os.getenv('GCP_PROJECT_ID', 'lego-investments')
     GCP_GCS_BUCKET: str = os.getenv('GCP_GCS_BUCKET', 'lego-investment-lake')
-    GCP_BQ_DATASET: str = os.getenv('GCP_B0_DATASET', 'lego_staging')
+    GCP_BQ_DATASET: str = os.getenv('GCP_BQ_DATASET', 'lego_staging')
     GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '')
 
     # API Keys
