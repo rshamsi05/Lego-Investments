@@ -92,12 +92,12 @@ SCHEMA_SETS = [
     bigquery.SchemaField('days_since_retirement', 'INTEGER', mode='NULLABLE', description='Number of days since the set was retired'),
     bigquery.SchemaField('minifigure_count', 'INTEGER', mode='NULLABLE', description='Total number of unique minifigures included in the set'),
     bigquery.SchemaField('part_count_unique', 'INTEGER', mode='NULLABLE', description='Number of unique parts in the set'),
-    # does this column makes sense, some pieces might be more expensive than other pieces?
+    # Might not be the best metric as it does not accout for some pieces being more expensive than others
     bigquery.SchemaField('price_per_piece', 'FLOAT', mode='NULLABLE', description='Original retail price divided by piece count'),
     bigquery.SchemaField('era_classification', 'STRING', mode='NULLABLE', description='Classification of the set into an era based on its release year (e.g. Classic, Modern, etc)'),
     bigquery.SchemaField('current_avg_price_usd', 'FLOAT', mode='NULLABLE', description='Current average market price of the set'),
     bigquery.SchemaField('price_appreciation_percentage', 'FLOAT', mode='NULLABLE', description='Percentage increase in price from original retail to current average market price'),
-    # what is the purpose of this column?
+    # Gives us investment insights over different periods of time
     bigquery.SchemaField('annualized_return_percentage', 'FLOAT', mode='NULLABLE', description='Annualized return percentage based on the original retail price, current average market price, and number of years since release'),
     bigquery.SchemaField('rebrickable_url', 'STRING', mode='NULLABLE', description='URL to Rebrickable set page'),
     bigquery.SchemaField('last_updated', 'TIMESTAMP', mode='REQUIRED', description='Timestamp when the record was created in the warehouse'),
@@ -127,8 +127,8 @@ SCHEMA_PRICE_HISTORY = [
 # Master minifigure table with set appearaance metrics
 SCHEMA_MINIFIGURES = [
     bigquery.SchemaField('minifigure_id', 'STRING', mode='REQUIRED', description='Unique identifier for the minifigure'),
-    # Don we need character name what is the difference between name and character name 
-    bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the minifigure'),
+    # Both columns are required as they serve different analytics purposes
+    bigquery.SchemaField('name', 'STRING', mode='REQUIRED', description='Name of the phyiscal figure which may include details like outfit or version (e.g "Luke Skywalker (Tatooine Outfit)")'),
     bigquery.SchemaField('minifigure_name', 'STRING', mode='NULLABLE', description='Name of the character the minifigure represents'),
     bigquery.SchemaField('num_parts', 'INTEGER', mode='NULLABLE', description='Number of parts in the minifigure'),
     bigquery.SchemaField('year_introduced', 'INTEGER', mode='NULLABLE', description='Year the minifigure was introduced'),
