@@ -5,7 +5,7 @@ Shared base class with retry logic, rate limiting, and error handling
 import time
 import logging
 import json
-from typing import Optional
+from typing import Optional, Union
 from abc import ABC, abstractmethod
 
 import requests
@@ -24,7 +24,8 @@ class BaseIngestion(ABC):
     def __init__(self, source_name: str):
         self.source_name = source_name
         self.logger = logging.getLogger(f'ingestion.{source_name}')
-        self._setup_session()
+        self.rate_limit = 0.5 # default delay
+        self.setup_session()
     
     def setup_session(self):
         '''Configure HTTP session with retry logic'''
@@ -50,7 +51,7 @@ class BaseIngestion(ABC):
 
         self.logger.info('HTTP session configured with retry strategy')
 
-    def make_request(self, url, params=None):
+    def make_request(self, url: str, params: Optional[dict] = None, method: str = 'GET', parse_json:bool = True) -> Optional[Union[dict, str]]:
         # Avoid spamming request to the server and have a delay between requests 
         time.sleep(self.rate_limit) 
 
@@ -61,8 +62,10 @@ class BaseIngestion(ABC):
         if(response.status_code != 200):
             self.logger.error(f'Failed to fetch data from {url}. Status code: {response.status_code}')
             return None
-        else:
+        if(parse_json):
             return response.json()
+        else:
+            return response.text
     def upload_to_lake(self, data, gcs_path):
         # Convert data to JSON string before uploading to GCS
         json_data = json.dumps(data)
@@ -79,4 +82,11 @@ class BaseIngestion(ABC):
         current_date = datetime.now().strftime('%Y-%m-%d')
 
         return f"rawFiles/{self.source_name}/{data_type}/{current_date}.json"    
+    
+    @abstractmethod
+    def ingest(self):
+        '''
+        Main method to run injestion process
+        '''
+        pass
 
