@@ -21,8 +21,9 @@ class BrickLinkIngestion(BaseIngestion):
         html = self.make_request(URL, parse_json=False)
         if(not html):
             return []
+        # What is the point of soup?
         soup = BeautifulSoup(html, 'html.parser')
-        table = soup.find('table', class_='table table-striped')
+        table = soup.find('table', class_='fv')
         rows_data = []
         for row in table.find_all('tr')[1:]:
             cells = row.find_all('td')
