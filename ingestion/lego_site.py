@@ -1,12 +1,9 @@
 '''
+CURRENTLY DECIDING TO SKIP THIS IN FAVOR OF USING JUST REBRICKABLE AND BRICKLINK AS WE NEED TO FIGURE OUT A WAY TO SCRAPE LEGO.COM, Maybe use curl CFFI?
 Scrapes current retail prices and availability from Lego.com
 '''
 
-import logging
 import time
-from typing import List, Dict, Optional
-
-from bs4 import BeautifulSoup
 from ingestion.base import BaseIngestion
 from config.settings import settings
 
@@ -18,32 +15,27 @@ class LegoSiteIngestion(BaseIngestion):
         super().__init__(source_name='lego_site')
         self.base_url = "https://www.lego.com"
         self.rate_limit = 1.5 # seconds between each request
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        })
         self.logger.info("LegoSiteIngestion initialized")
     
+    
     def fetch_set_details(self, set_num):
-        URL = f"{self.base_url}/en-us/catalog/products/star-wars?q={set_num}"
-        html = self.make_request(URL, parse_json=False)
-        if(not html):
-            return None
-        soup = BeautifulSoup(html, 'html.parser')
-        product_title = soup.find('div', class_='product-title')
-        if(product_title):
-            # extract title and URL
-            link_tag = product_title.find('a')
-            title = link_tag.get_text(strip=True) if link_tag else None
-            url = link_tag['href'] if link_tag and link_tag.has_attr('href') else None
+        URL = f"https://www.lego.com/en-us/service/products?query={set_num}"
 
-            # Extract Price (usually found in a <span> with class price)
-            price_tag = product_title.find('span', class_='price')
-            price = price_tag.get_text(strip=True) if price_tag else None
-
+        # Fetching JSON directly
+        response = self.make_request(URL, parse_json=True)
+        if(response and 'products' in response and len(response['products']) > 0):
+            product = response['products'][0]
             return {
-                'title': title,
-                'price': price,
-                'url': f"https://www.lego.com{url}" if url else None
+                'title': product.get('title'),
+                'price': product.get('price', {}).get('value'), # if price is missing it returns an empty dictionary and returns None because value is not in the empty dictionary
+                'currency': product.get('price', {}).get('currency'), # same principle applies above with currency.
+                'url': f"https://www.lego.com{product.get('url')}",
+                'availability': product.get('availability')
             }
-        else:
-            return None
+        return None
 
     def ingest(self, set_numbers):
         for set_num in set_numbers:
