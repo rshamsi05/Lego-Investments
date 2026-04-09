@@ -1,1 +1,14 @@
 # dbt p-roject config, database, schema, and model paths
+name: 'lego_investments'
+version: '1.0.0'
+config-version: 2
+profile: 'lego_investments'
+
+model-paths: ["models"]
+
+models:
+  lego_investments:
+    staging:
+      +materialized: view
+    warehouse_final:
+      +materialized: table

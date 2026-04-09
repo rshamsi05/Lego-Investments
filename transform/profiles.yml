@@ -1,1 +1,12 @@
 # dbt connection settings pointing to BigQuery project
+lego_investments:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: lego-investments
+      dataset: lego_staging
+      threads: 1
+      timeout_seconds: 300
+      location: US
