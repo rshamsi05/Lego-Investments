@@ -35,7 +35,7 @@ class BaseIngestion(ABC):
         retry_strategy = Retry(
             total=settings.MAX_RETRIES,
             backoff_factor=settings.RETRY_BACKOFF,
-            status_forcelist=[429, 500, 502, 503, 504],
+            status_forcelist=[403, 429, 500, 502, 503, 504],
             allowed_methods=["GET", "POST"]
         )
 
