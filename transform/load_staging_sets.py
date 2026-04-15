@@ -3,13 +3,14 @@ Script to take in GCS JSON files and place them into Staging Tables within BigQu
 '''
 
 import json, os
+import time
 from datetime import datetime
 
 from storage.lake import download_from_gcs
-from storage.queries import create_table, insert_rows, table_exists, truncate_table
+from storage.queries import create_table, insert_rows, table_exists, delete_table
 from storage.schema import SCHEMA_STG_SETS
 
-GCS_PATH = "rawFiles/rebrickable/sets/2026-04-06.json"
+GCS_PATH = "rawFiles/rebrickable/sets/2026-04-13.json"
 LOCAL_PATH = "temp/sets.json"
 TABLE_NAME = "stg_sets"
 
@@ -52,14 +53,24 @@ def main():
     # Load into BigQuery
     print(f"Loading {len(clean_data)} records into {TABLE_NAME}...")
 
-    if(not table_exists(TABLE_NAME)):
-        print(f"Table {TABLE_NAME} does not exist. Creating table...")
-        create_table(TABLE_NAME, SCHEMA_STG_SETS, description="Raw sets from Rebrickable")
-    else:
-        # if the table already exists we can refresh the table by wiping old data before inserting new data (this cannot be done with price data however)
-        truncate_table(TABLE_NAME)
+    if(table_exists(TABLE_NAME)):
+        print(f"Table {TABLE_NAME} already exists. Deleting and recreating to avoid streaming buffer issues...")
+        delete_table(TABLE_NAME)
+        time.sleep(2)
     
+    print(f"Creating table {TABLE_NAME}...")
+    create_table(TABLE_NAME, SCHEMA_STG_SETS, description="Raw sets from Rebrickable")
+
+    # Wait for table to fully ready before inserting rows (to avoid streaming buffer issues)
+    print("Waiting for table to be ready")
+    time.sleep(10)
+
+    # Verify table actualy exists before inserting rows (to avoid streaming buffer issues)
+    if(not table_exists(TABLE_NAME)):
+        raise Exception("Table creation failed or timed out")
+
     # inserting Rows
+    print(f"Inserting {len(clean_data)} rows...")
     errorsWhileInserting = insert_rows(TABLE_NAME, clean_data)
     if(not errorsWhileInserting):
         print(f"Successfully inserted {len(clean_data)} records into {TABLE_NAME}")

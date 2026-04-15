@@ -10,4 +10,4 @@ SELECT set_num AS set_id, name, year,
     -- Add metadata
     CURRENT_TIMESTAMP() AS ingested_at
 -- Read from the raw staging table
-FROM 'lego-investments.lego_staging.stg_sets';
+FROM `lego-investments.lego_staging.stg_sets`;
