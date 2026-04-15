@@ -26,15 +26,31 @@ class RebrickableIngestion(BaseIngestion):
     
     def fetch_sets(self):
         URL = f"{self.base_url}/sets/"
-        params = {
-            "theme_id": 18 # Star Wars Theme
-        }
-        response = self.make_request(URL, params=params)
-        if(response):
-            return response.get('results')
-        else:
-            return []
-    
+        all_sets = []
+        page = 1
+        # Loops until there is no next page URL
+        while(True):
+            params = {"theme_id": 209, "page": page} # Star Wars Theme
+            response = self.make_request(URL, params=params)
+            if(response is None):
+                print("Request failed! Stopping.")
+                break
+
+            if(response.get('results')):
+                # Add results to all_sets list, if 'results' key is missxing it defaults to an empty list
+                all_sets.extend(response.get('results', []))
+                print(f"Fetched {len(all_sets)} sets so far... (Total available: {response.get('count')})")
+                # if there is no next page, we are done fetching sets and can break the loop
+                next_page = response.get('next')
+                if(not next_page):
+                    print("No more pages to fetch. Finished fetching sets.")
+                    break
+                page += 1
+            else:
+                print("No results found on page {page}. Stopping.")
+                break
+        return all_sets
+
     def ingest(self):
         sets = self.fetch_sets()
         if(not sets):
