@@ -1,6 +1,7 @@
 import time
 from typing import List, Dict, Optional
-
+import random
+import re
 from bs4 import BeautifulSoup
 from utils.cleaning import clean_int, clean_price
 from ingestion.base import BaseIngestion
@@ -14,7 +15,7 @@ class BrickLinkIngestion(BaseIngestion):
     def __init__(self):
         super().__init__(source_name='bricklink')
         self.base_url = settings.BRICKLINK_BASE_URL
-        self.rate_limit = 2.0 # 2 seconds between requests
+        self.rate_limit = 2.0
         self.logger.info("BrickLinkIngestion initialized")
     
     
@@ -23,40 +24,29 @@ class BrickLinkIngestion(BaseIngestion):
         html = self.make_request(URL, parse_json=False)
         if(not html):
             return []
-        # What is the point of soup?
+        # HTML scraper to extract price data from page.
         soup = BeautifulSoup(html, 'html.parser')
-        table = soup.find('table', class_='fv')
-        rows_data = []
+        page_text = soup.get_text(separator=" ", strip=True)
+        pattern = r"Times Sold:\s*([\d,]+)\s*Total Qty:\s*([\d,]+)\s*Min Price:\s*([^A]+)Avg Price:\s*([^Q]+)Qty Avg Price:\s*([^M]+)Max Price:\s*([^T|C|L]+)"
+        
+        matches = re.findall(pattern, page_text)
 
-        for row in table.find_all('tr')[1:]:
-            cells = row.find_all('td')
-            if (len(cells) >= 6):
-                #Extracting text
-                type_text = cells[0].get_text(strip=True)
-                min_price = cells[1].get_text(strip=True)
+        final_data = []
+        conditions = ['New', 'Used']
 
-                # Validation check for headers
-                if(type_text in ["New", "Used", "Current Items for Sale"] or "Qty" in str(row.get('qty'))):
-                    continue
-                    
-                labels = ["Min Price", "Avg_Price", "Qty", "Time Sold"]
-                if any(lable in type_text for lable in labels):
-                    continue
-                    
-                if(not any(char.isdigit() for char in min_price)):
-                    continue
-            
-                # Creating the row to insert
-                row_dict = {
-                    'type': type_text,
-                    'min_price': min_price,
-                    'avg_price': cells[2].get_text(strip=True),
-                    'max_price': cells[3].get_text(strip=True),
-                    'qty': cells[4].get_text(strip=True),
-                    'date': cells[5].get_text(strip=True)
-                }
-                rows_data.append(row_dict)
-        return rows_data
+        for i, match in enumerate(matches[:2]):
+            final_data.append({
+                'type': conditions[i],
+                'qty': match[1].replace(',', '').strip(),
+                'min_price': match[2].strip(),
+                'avg_price': match[3].strip(),
+                'max_price': match[5].strip(),
+                'date': "Last 6 Months"
+            })
+
+        if (not final_data):
+            self.logger.warning(f"No summary price data extracted for {set_num}")
+        return final_data        
 
     def ingest(self, set_numbers):
         for set_num in set_numbers:
@@ -65,7 +55,8 @@ class BrickLinkIngestion(BaseIngestion):
                 gcs_path = self.get_gcs_path(f"prices/{set_num}")
                 self.upload_to_lake(price_data, gcs_path)
                 self.logger.info(f"Ingested price history for set {set_num} to GCS at {gcs_path}")
-            time.sleep(self.rate_limit)
+            delay = random.uniform(4, 10)
+            time.sleep(delay)
 
     
     
