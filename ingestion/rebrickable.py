@@ -3,6 +3,7 @@ Pulls set, part, and minifigure data from Rebrickable API.
 '''
 
 import logging
+import time
 from typing import List, Dict, Optional
 
 from ingestion.base import BaseIngestion
@@ -50,6 +51,24 @@ class RebrickableIngestion(BaseIngestion):
                 print("No results found on page {page}. Stopping.")
                 break
         return all_sets
+
+    def ingestMinifigures(self, set_nums):
+        '''
+        Fetches minifigures for a list of set numbers and uploads to GCS
+        '''
+        self.logger.info(f"Starting bulk minifigure ingestion for {len(set_nums)} sets")
+
+        for set_num in set_nums:
+            # Fetch from rebrickable API
+            minifigs = self.fetch_set_minifigs(set_num)
+            if(minifigs):
+                # Generate path to upload to GCS
+                gcs_path = self.get_gcs_path(f"minifigures/{set_num}")
+                # Upload to GCS lake
+                self.upload_to_lake(minifigs, gcs_path)
+                self.logger.info(f"Ingested {len(minifigs)} minifigs for set {set_num}")
+            # apply rate limit(5 requests per second)
+            time.sleep(0.2)
 
     def ingest(self):
         sets = self.fetch_sets()
