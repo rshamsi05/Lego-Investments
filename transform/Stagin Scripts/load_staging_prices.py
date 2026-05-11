@@ -11,7 +11,7 @@ from utils.cleaning import clean_price, clean_int
 from config.settings import settings
 
 GCS_PREFIX = "rawFiles/bricklink/prices/"
-TABLE_NAME = "stg_prices"
+TABLE_NAME = "src_prices"
 
 
 

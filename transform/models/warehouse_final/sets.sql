@@ -45,6 +45,6 @@ SELECT s.* EXCEPT(ingested_at),
 
     -- Metadata
     CURRENT_TIMESTAMP() AS ingested_at
-FROM {{source('lego_staging', 'stg_sets')}} s
+FROM {{ ref('stg_sets')}} s
 LEFT JOIN latest_prices p ON s.set_id = p.set_id
 
