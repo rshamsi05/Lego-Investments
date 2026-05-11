@@ -11,8 +11,8 @@ from utils.cleaning import clean_price, clean_int
 from config.settings import settings
 
 GCS_PREFIX = "rawFiles/rebrickable/minifigures/"
-TABLE_MINIFIGS = "stg__minifigures"
-TABLE_LINKS = "stg_set_minifigures"
+TABLE_MINIFIGS = "src_minifigures"
+TABLE_LINKS = "src_set_minifigures"
 
 
 def main():
@@ -90,8 +90,7 @@ def main():
             os.remove(local_path)
 
 
-    # Loading Master  into BigQuery
-    TABLE_MINIFIGS = "stg_minifigures"
+    # Loading Master table into BigQuery
     if(all_minifigs):
         print(f"Loading {len(all_minifigs)} minifig records into {TABLE_MINIFIGS}...")
         # Create table if needed

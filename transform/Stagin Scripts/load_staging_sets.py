@@ -12,7 +12,7 @@ from storage.schema import SCHEMA_STG_SETS
 
 GCS_PATH = "rawFiles/rebrickable/sets/2026-04-13.json"
 LOCAL_PATH = "temp/sets.json"
-TABLE_NAME = "stg_sets"
+TABLE_NAME = "src_sets"
 
 def main():
     print("Starting staging sets load process...")

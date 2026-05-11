@@ -6,8 +6,8 @@ sources:
     schema: lego_staging
     description: "Raw data ingested from Rebrickable and Bricklink Scrapers"
     tables:
-      - name: stg_prices
-        description: "Historical price observation for LEgo ets scraped from Bricklink"
+      - name: src_prices
+        description: "Historical price observation for Lego ets scraped from Bricklink"
         columns: 
           - name: set_id
             tests:
@@ -15,10 +15,14 @@ sources:
           - name: observed_date
             tests:
               - not_null
-      - name: stg_sets
+      - name: src_sets
         description: "Lego set metadata ingested from Rebrickable API"
         columns:
           - name: set_id
             tests:
               - unique
               - not_null
+      - name: src_minifigures
+        description: "Unique list of Lego minifigures"
+      - name: src_set_minifigures
+        description: "Junction table linking sets to minifigures"

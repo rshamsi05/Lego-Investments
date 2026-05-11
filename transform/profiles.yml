@@ -6,7 +6,7 @@ lego_investments:
       type: bigquery
       method: oauth
       project: lego-investments
-      dataset: lego_staging
+      dataset: lego_warehouse
       threads: 1
       timeout_seconds: 300
       location: US
