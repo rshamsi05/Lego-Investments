@@ -1,0 +1,76 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  airflow-webserver:
+    build: .
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./ingestion:/opt/airflow/ingestion
+      - ./transform:/opt/airflow/transform
+      - ./config:/opt/airflow/config
+      - ./storage:/opt/airflow/storage
+      - ./utils:/opt/airflow/utils
+      - ./temp:/opt/airflow/temp
+      - ./lego-investments-cb1c980fec6a.json:/opt/airflow/lego-investments-cb1c980fec6a.json
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=lego_star_wars_secret_key_123
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/lego-investments-cb1c980fec6a.json
+      - PYTHONPATH=/opt/airflow
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    command: webserver
+
+  airflow-scheduler:
+    build: .
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./ingestion:/opt/airflow/ingestion
+      - ./transform:/opt/airflow/transform
+      - ./config:/opt/airflow/config
+      - ./storage:/opt/airflow/storage
+      - ./utils:/opt/airflow/utils
+      - ./temp:/opt/airflow/temp
+      - ./lego-investments-cb1c980fec6a.json:/opt/airflow/lego-investments-cb1c980fec6a.json
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=lego_star_wars_secret_key_123
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/lego-investments-cb1c980fec6a.json
+      - PYTHONPATH=/opt/airflow
+    env_file:
+      - .env
+    command: scheduler
+
+  airflow-init:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+    command: version
