@@ -150,23 +150,6 @@ def create_table(
 
     return True
 
-def delete_table(table_name: str, dataset_id: str | None=None) -> bool:
-    '''
-    Delete a table from BigQuery
-    
-    Args:
-        table_name: Name of the table
-        dataset_id: Dataset ID (defaults to settings.GCP_BQ_DATASET)
-    Returns:
-        True if deleted successfully
-    '''
-    client = get_client()
-    dataset = dataset_id or settings.GCP_BQ_DATASET
-    table_id = f"{client.project}.{dataset}.{table_name}"
-    # Not sure if I want this to throw an error or not 
-    client.delete_table(table_id, not_found_ok=True)
-    return True
-
 # Is there a better name than truncate table it appears we are clearing a table
 def truncate_table(table_name: str, dataset_id: str | None=None) -> bool:
     '''
@@ -180,7 +163,7 @@ def truncate_table(table_name: str, dataset_id: str | None=None) -> bool:
     '''
     client = get_client()
     dataset = dataset_id or settings.GCP_BQ_DATASET
-    query = f"DELETE FROM `{client.project}.{dataset}.{table_name}` WHERE TRUE"
+    query = f"TRUNCATE TABLE `{client.project}.{dataset}.{table_name}`"
     run_query(query)
 
     return True

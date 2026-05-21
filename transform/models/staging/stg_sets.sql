@@ -1,5 +1,4 @@
 -- Cleans and standardizes raw sets table from Rebrickable
--- NOTE: Staging sets python file already renames the columns, so this SQL script is not needed as of now, we can refactor later.
 SELECT
     set_id,
     name,

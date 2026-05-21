@@ -3,17 +3,15 @@ Loads raw price data from GCS into BigQuery Staging Tables
 '''
 
 import json, os
+import time
 from datetime import datetime
 from storage.lake import list_gcs_files, download_from_gcs
-from storage.queries import create_table, insert_rows, table_exists, delete_table
+from storage.queries import create_table, insert_rows, table_exists, truncate_table
 from storage.schema import SCHEMA_STG_PRICES
 from utils.cleaning import clean_price, clean_int
-from config.settings import settings
 
 GCS_PREFIX = "rawFiles/bricklink/prices/"
 TABLE_NAME = "src_prices"
-
-
 
 
 def main():
@@ -29,7 +27,7 @@ def main():
     for gcs_path in files:
         # extract set number from the path
         parts = gcs_path.split('/')
-        set_number = parts[-2] # the set number is the second to last part of the path (e.g. rawFiles/bricklink/prices/75252/2026-04-13.json)
+        set_number = parts[-2]
 
         local_path = f"temp/price_{set_number}.json"
 
@@ -45,7 +43,6 @@ def main():
                 rawData = json.loads(content)
             except json.JSONDecodeError as e:
                 print(f"ERROR: Failed to parse JSON from {gcs_path}. Error: {e}")
-                print(f"File content: {content[:200]}")
                 continue
 
         for row in rawData:
@@ -62,23 +59,30 @@ def main():
             }
             all_rows.append(cleaned_row)
         
-        # Cleanup local file
-        if os.path.exists(local_path):
+        # Clean up local file inside loop
+        if(os.path.exists(local_path)):
             os.remove(local_path)
-        
 
-        # Load to BigQuery
-        print(f"Loading {len(all_rows)} price records into {TABLE_NAME}...")
+    # -- Loading data into BigQuery (BATCH LOAD) --
+    if all_rows:
+        print(f"Checking status of {TABLE_NAME}...")
 
         if(not table_exists(TABLE_NAME)):
-            print("Creating table...")
+            print(f"Table {TABLE_NAME} does not exist. Creating...")
             create_table(TABLE_NAME, SCHEMA_STG_PRICES)
-        
-        errors = insert_rows(TABLE_NAME, all_rows)
-        if(not errors):
-            print("Succesfully loaded price data")
+            time.sleep(5)
         else:
-            print(f"Errors: {errors}")
+            print(f"Table {TABLE_NAME} already exists. Truncating...")
+            truncate_table(TABLE_NAME)
+        
+        # Inserting rows 
+        print(f"Inserting {len(all_rows)} rows into {TABLE_NAME}...")
+        errorsWhileInserting = insert_rows(TABLE_NAME, all_rows)
+
+        if(not errorsWhileInserting):
+            print(f"Successfully loaded price data into {TABLE_NAME}")
+        else:
+            print(f"Errors while inserting into {TABLE_NAME}: {errorsWhileInserting}")
 
 if __name__ == "__main__":
     main()
