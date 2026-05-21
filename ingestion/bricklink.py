@@ -1,9 +1,7 @@
 import time
-from typing import List, Dict, Optional
 import random
 import re
 from bs4 import BeautifulSoup
-from utils.cleaning import clean_int, clean_price
 from ingestion.base import BaseIngestion
 from config.settings import settings
 

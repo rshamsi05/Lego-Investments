@@ -3,12 +3,11 @@ Loads raw minifig data from GCS into BigQuery Tables
 '''
 
 import json, os
+import time
 from datetime import datetime
 from storage.lake import list_gcs_files, download_from_gcs
-from storage.queries import create_table, insert_rows, table_exists, delete_table
+from storage.queries import create_table, insert_rows, table_exists, truncate_table
 from storage.schema import SCHEMA_STG_MINIFIGURES, SCHEMA_STG_SET_MINIFIGURES
-from utils.cleaning import clean_price, clean_int
-from config.settings import settings
 
 GCS_PREFIX = "rawFiles/rebrickable/minifigures/"
 TABLE_MINIFIGS = "src_minifigures"
@@ -92,23 +91,32 @@ def main():
 
     # Loading Master table into BigQuery
     if(all_minifigs):
-        print(f"Loading {len(all_minifigs)} minifig records into {TABLE_MINIFIGS}...")
-        # Create table if needed
+        print(f"Loading {len(all_minifigs)} unique minifigures into {TABLE_MINIFIGS}...")
+        # if table doesnt exist we create it
         if(not table_exists(TABLE_MINIFIGS)):
+            print(f"Table {TABLE_MINIFIGS} does not exist. Creating...")
             create_table(TABLE_MINIFIGS, SCHEMA_STG_MINIFIGURES)
-        
-        errors = insert_rows(TABLE_MINIFIGS, all_minifigs)
-        if errors: print(f"Errors in {TABLE_MINIFIGS}: {errors}")
-        else: print(f"Successfully loaded {TABLE_MINIFIGS} data")
+            time.sleep(5)
+        else:
+            print(f"Table {TABLE_MINIFIGS} already exists. Truncating table")
+            truncate_table(TABLE_MINIFIGS)
+        errorsWhileInserting = insert_rows(TABLE_MINIFIGS, all_minifigs)
+        if errorsWhileInserting: print(f"Errors in {TABLE_MINIFIGS}: {errorsWhileInserting}")
+        else: print(f"Successfully loaded {TABLE_MINIFIGS} data!")
     
-    # Loading Junction table into BigQuery
     if(all_links):
-        print(f"Loading {len(all_links)} set-minifig links into [TABLE]")
+        print(f"Loading {len(all_links)} unique links into {TABLE_LINKS}...")
+        # if table doesnt exist we create it
         if(not table_exists(TABLE_LINKS)):
+            print(f"Table {TABLE_LINKS} does not exist. Creating...")
             create_table(TABLE_LINKS, SCHEMA_STG_SET_MINIFIGURES)
-        errors = insert_rows(TABLE_LINKS, all_links)
-        if errors: print(f"Errors in {TABLE_LINKS}: {errors}")
-        else: print(f"Successfully loaded {TABLE_LINKS}")
+            time.sleep(5)
+        else:
+            print(f"Table {TABLE_LINKS} already exists. Truncating table")
+            truncate_table(TABLE_LINKS)
+        errorsWhileInserting = insert_rows(TABLE_LINKS, all_links)
+        if errorsWhileInserting: print(f"Errors in {TABLE_LINKS}: {errorsWhileInserting}")
+        else: print(f"Successfully loaded {TABLE_LINKS} data!")
     
 if __name__ == "__main__":
     main()

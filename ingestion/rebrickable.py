@@ -2,9 +2,7 @@
 Pulls set, part, and minifigure data from Rebrickable API.
 '''
 
-import logging
 import time
-from typing import List, Dict, Optional
 
 from ingestion.base import BaseIngestion
 from config.settings import settings
@@ -79,14 +77,6 @@ class RebrickableIngestion(BaseIngestion):
         self.upload_to_lake(sets, gcs_path)
         self.logger.info(f"Ingested {len(sets)} sets from Rebrickable to GCS at {gcs_path}")
     
-    def fetch_set_parts(self, set_num):
-        URL = f"{self.base_url}/sets/{set_num}/parts/"
-        response = self.make_request(URL)
-        if(response):
-            return response.get('results')
-        else:
-            return []
-    
     def fetch_set_minifigs(self, set_num):
         URL = f"{self.base_url}/sets/{set_num}/minifigs/"
         response = self.make_request(URL)
@@ -94,6 +84,3 @@ class RebrickableIngestion(BaseIngestion):
             return response.get('results')
         else:
             return []
-    
-
-

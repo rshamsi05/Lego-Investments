@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 from storage.lake import download_from_gcs
-from storage.queries import create_table, insert_rows, table_exists, delete_table
+from storage.queries import create_table, insert_rows, table_exists, truncate_table
 from storage.schema import SCHEMA_STG_SETS
 
 GCS_PATH = "rawFiles/rebrickable/sets/2026-04-13.json"
@@ -50,35 +50,35 @@ def main():
         }
         clean_data.append(row)
     
-    # Load into BigQuery
-    print(f"Loading {len(clean_data)} records into {TABLE_NAME}...")
+    # ---LOADING DATA INTO BIGQUERY---
 
-    if(table_exists(TABLE_NAME)):
-        print(f"Table {TABLE_NAME} already exists. Deleting and recreating to avoid streaming buffer issues...")
-        delete_table(TABLE_NAME)
-        time.sleep(2)
-    
-    print(f"Creating table {TABLE_NAME}...")
-    create_table(TABLE_NAME, SCHEMA_STG_SETS, description="Raw sets from Rebrickable")
+    # check status of current table
+    print(f"Checking table {TABLE_NAME} status...")
 
-    # Wait for table to fully ready before inserting rows (to avoid streaming buffer issues)
-    print("Waiting for table to be ready")
-    time.sleep(10)
-
-    # Verify table actualy exists before inserting rows (to avoid streaming buffer issues)
+    # create table if it doesnt exist
     if(not table_exists(TABLE_NAME)):
-        raise Exception("Table creation failed or timed out")
-
-    # inserting Rows
-    print(f"Inserting {len(clean_data)} rows...")
+        print(f"Table {TABLE_NAME} does not exist. Creating...")
+        create_table(TABLE_NAME, SCHEMA_STG_SETS, description="Raw sets from Rebrickable")
+        # Wait for Google metadata catalog to sync
+        time.sleep(5)
+    # truncate table if it does exist
+    else:
+        print(f"Table {TABLE_NAME} exists. Truncation existing rows...")
+        truncate_table(TABLE_NAME)
+    
+    #Inserting rows
+    print(f"Inserting {len(clean_data)} rows into {TABLE_NAME}...")
     errorsWhileInserting = insert_rows(TABLE_NAME, clean_data)
+
     if(not errorsWhileInserting):
-        print(f"Successfully inserted {len(clean_data)} records into {TABLE_NAME}")
+        print(f"Successfully inserted {len(clean_data)} rows into {TABLE_NAME}!")
     else:
         print(f"Encountered errors while inserting rows: {errorsWhileInserting}")
     
-    print("Cleaning up local files...")
-    os.remove(LOCAL_PATH)
+    # Cleanup local file
+    if os.path.exists(LOCAL_PATH):
+        os.remove(LOCAL_PATH)
+        print(f"Cleaned up local file {LOCAL_PATH}")
 
 if __name__ == "__main__":
     main()

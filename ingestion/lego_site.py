@@ -5,7 +5,6 @@ Scrapes current retail prices and availability from Lego.com
 
 import time
 from ingestion.base import BaseIngestion
-from config.settings import settings
 
 class LegoSiteIngestion(BaseIngestion):
     '''
