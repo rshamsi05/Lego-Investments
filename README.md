@@ -5,7 +5,7 @@ An end-to-end data engineering pipeline that ingests, transforms, and models Leg
 ---
 
 ## High-Level Architecture
-
+```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          EXTRACT                                         │
 │                                                                          │
@@ -77,7 +77,7 @@ An end-to-end data engineering pipeline that ingests, transforms, and models Leg
 │                                                                          │
 │   • Retries: 1   • Retry delay: 5 min   • Catchup: disabled             │
 └─────────────────────────────────────────────────────────────────────────┘
-
+```
 ## Data Sources
 ### Rebrickable API
 Provides the Lego Star Wars set catalog — set IDs, names, release years, piece counts, theme and sub-theme classifications, retail prices, retirement status, and per-set minifigure rosters. Authenticated via API key with paginated requests and a 0.2s rate limit per request.
@@ -86,9 +86,11 @@ Provides secondary market price data — average, minimum, and maximum prices fo
 
 ## Airflow DAG
 The lego_star_wars_pipeline DAG runs daily and implements the full ELT flow with explicit task dependencies:
+```
 extract_rebrickable ──┬──▶ load_sets ──────┐
                       └──▶ load_minifigs ──┼──▶ run_dbt
 extract_bricklink ───────▶ load_prices ────┘
+```
 
 Rebrickable and Bricklink extraction run in parallel. Loading tasks are gated on their respective extraction completing. dbt transformation runs only after all three load tasks succeed.
 
