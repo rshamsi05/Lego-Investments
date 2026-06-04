@@ -1,10 +1,10 @@
-# Lego Star Wars Investment Analysis (DeepVault) 🚀
+# Lego Star Wars Investment Analysis
 
 An end-to-end data engineering pipeline that ingests, transforms, and models Lego Star Wars market data to support investment analysis. Built on a modern GCP stack with automated daily orchestration via Apache Airflow.
 
 ---
 
-## 🏗 High-Level Architecture
+## High-Level Architecture
 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          EXTRACT                                         │
